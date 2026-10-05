@@ -71,31 +71,36 @@ void AEnemyAIController::OnPossess(APawn* InPawn)
 
 void AEnemyAIController::OnTargetPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
+    // Blackboardがない場合は処理を行わない
     if (!MyBlackboard) return;
 
     if (Stimulus.WasSuccessfullySensed())
     {
+        // 発見・再発見した場合は、追跡対象の解除を取り消す
         GetWorldTimerManager().ClearTimer(LoseSightTimerHandle);
+
+        // 検知したActorをBlackboardに追跡対象として登録する
         MyBlackboard->SetValueAsObject(KEY_TargetActor, Actor);
     }
     else
     {
+        // 既存のタイマーを取り消し、見失った時点から待ち時間を計り直す
         GetWorldTimerManager().ClearTimer(LoseSightTimerHandle);
-        GetWorldTimerManager().SetTimer(
-            LoseSightTimerHandle,
-            [this]()
+
+        // 一瞬見失っても追跡対象をすぐに解除しないよう、猶予時間を設ける
+        GetWorldTimerManager().SetTimer(LoseSightTimerHandle, [this]()
             {
                 if (MyBlackboard)
                 {
+                    // 猶予時間内に再発見できなかった場合、追跡対象を解除する
                     MyBlackboard->ClearValue(KEY_TargetActor);
                 }
             },
-            LoseSightGraceSeconds, 
-            false
+            LoseSightGraceSeconds, // 追跡対象を解除するまでの待ち時間
+            false                  // タイマーは繰り返さず、一度だけ実行する
         );
     }
 }
-
 /*
     デバッグ処理
 */

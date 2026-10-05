@@ -49,9 +49,13 @@ void AEnemyCharacter::ResetPatrolRandomOrder()
         return;
     }
 
+    // 巡回地点の順番をランダムに並べ替える
     for (int32 i = N - 1; i > 0; --i)
     {
+        // まだ順番が確定していない範囲から、交換相手を選ぶ
         const int32 j = FMath::RandRange(0, i);
+
+        // 選んだ要素と入れ替え、末尾側から順番を確定する
         PatrolOrder.Swap(i, j);
     }
 }
